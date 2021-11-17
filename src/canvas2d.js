@@ -13,6 +13,21 @@ CanvasRenderer.prototype.destroy = function() {
 	// Nothing to do here
 };
 
+CanvasRenderer.prototype.clear = function (options) {
+	options = options || {};
+	if (options.clearColor) {
+		var clearColor = [
+			options.clearColor[0] * 255,
+			options.clearColor[1] * 255,
+			options.clearColor[2] * 255,
+			options.clearColor[3]
+		];
+		var fillStyle = `rgba(${clearColor.join()})`
+		this.context.fillStyle = fillStyle;
+	}
+	this.context.fillRect(0, 0, this.width, this.height);
+};
+
 CanvasRenderer.prototype.resize = function(width, height) {
 	this.width = width|0;
 	this.height = height|0;

@@ -106,6 +106,16 @@ WebGLRenderer.prototype.destroy = function() {
 	this.contextLost = true;
 };
 
+WebGLRenderer.prototype.clear = function (options) {
+	options = options || {};
+	var gl = this.gl;
+	var clearColor = options.clearColor;
+	if (clearColor) {
+		gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+	}
+	gl.clear(gl.COLOR_BUFFER_BIT);
+};
+
 WebGLRenderer.prototype.resize = function(width, height) {
 	this.width = width|0;
 	this.height = height|0;
