@@ -26,6 +26,15 @@ var MPEG1 = function(options) {
 MPEG1.prototype = Object.create(JSMpeg.Decoder.Base.prototype);
 MPEG1.prototype.constructor = MPEG1;
 
+MPEG1.prototype.destroy = function () {
+	JSMpeg.Decoder.Base.prototype.destroy.call(this);
+	this.hasSequenceHeader = false;
+	this.bits.reset();
+	this.customIntraQuantMatrix.fill(0);
+	this.customNonIntraQuantMatrix.fill(0);
+	this.blockData.fill(0);
+};
+
 MPEG1.prototype.write = function(pts, buffers) {
 	JSMpeg.Decoder.Base.prototype.write.call(this, pts, buffers);
 

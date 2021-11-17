@@ -33,6 +33,9 @@ MPEG1WASM.prototype.destroy = function() {
 		return;
 	}
 	this.functions._mpeg1_decoder_destroy(this.decoder);
+	this.decoder = null;
+	this.hasSequenceHeader = false
+	JSMpeg.Decoder.Base.prototype.destroy.call(this);
 };
 
 MPEG1WASM.prototype.bufferGetIndex = function() {

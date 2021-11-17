@@ -15,7 +15,14 @@ var BaseDecoder = function(options) {
 	Object.defineProperty(this, 'currentTime', {get: this.getCurrentTime});
 };
 
-BaseDecoder.prototype.destroy = function() {};
+BaseDecoder.prototype.destroy = function() {
+	this.canPlay = false;
+	this.bytesWritten = 0;
+	this.timestamps = [];
+	this.timestampIndex = 0;
+	this.startTime = 0;
+	this.decodedTime = 0;
+};
 
 BaseDecoder.prototype.connect = function(destination) {
 	this.destination = destination;

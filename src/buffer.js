@@ -17,6 +17,12 @@ var BitBuffer = function(bufferOrLength, mode) {
 	this.index = 0;
 };
 
+BitBuffer.prototype.reset = function () {
+	this.bytes.fill(0);
+	this.byteLength = 0;
+	this.index = 0;
+};
+
 BitBuffer.prototype.resize = function(size) {
 	var newBytes = new Uint8Array(size);
 	if (this.byteLength !== 0) {
