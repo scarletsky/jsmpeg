@@ -62,6 +62,9 @@ var Player = function(url, options) {
 		get: this.getVolume,
 		set: this.setVolume
 	});
+	Object.defineProperty(this, "duration", {
+		get: this.getDuration
+	});
 
 	this.paused = true;
 	this.unpauseOnShow = false;
@@ -138,6 +141,11 @@ Player.prototype.pause = function(ev) {
 	if (this.options.onPause) {
 		this.options.onPause(this);
 	}
+};
+
+// NOTE: https://github.com/phoboslab/jsmpeg/issues/311#issuecomment-523935494
+Player.prototype.getDuration = function () {
+	return this.video.timestamps.length / this.video.frameRate;
 };
 
 Player.prototype.getVolume = function() {
