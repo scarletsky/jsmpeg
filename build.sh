@@ -88,6 +88,7 @@ cat \
 	src/ajax.js \
 	src/fetch.js \
 	src/ajax-progressive.js \
+	src/array-buffer.js \
 	src/websocket.js \
 	src/ts.js \
 	src/decoder.js \
