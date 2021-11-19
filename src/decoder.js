@@ -11,6 +11,7 @@ var BaseDecoder = function(options) {
 
 	this.startTime = 0;
 	this.decodedTime = 0;
+    this.playbackRate = 1;
 
 	Object.defineProperty(this, 'currentTime', {get: this.getCurrentTime});
 };

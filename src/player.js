@@ -62,6 +62,10 @@ var Player = function(url, options) {
 		get: this.getVolume,
 		set: this.setVolume
 	});
+	Object.defineProperty(this, "playbackRate", {
+		get: this.getPlaybackRate,
+		set: this.setPlaybackRate,
+	});
 	Object.defineProperty(this, "duration", {
 		get: this.getDuration
 	});
@@ -102,10 +106,8 @@ Player.prototype.startLoading = function() {
 
 Player.prototype.showHide = function(ev) {
 	if (document.visibilityState === 'hidden') {
-		this.unpauseOnShow = this.wantsToPlay;
 		this.pause();
-	}
-	else if (this.unpauseOnShow) {
+	} else {
 		this.play();
 	}
 };
@@ -135,8 +137,10 @@ Player.prototype.pause = function(ev) {
 		// Seek to the currentTime again - audio may already be enqueued a bit
 		// further, so we have to rewind it.
 		this.audioOut.stop();
-		this.seek(this.currentTime);
+		// this.seek(this.currentTime);
 	}
+
+	this.seek(this.currentTime);
 
 	if (this.options.onPause) {
 		this.options.onPause(this);
@@ -146,6 +150,19 @@ Player.prototype.pause = function(ev) {
 // NOTE: https://github.com/phoboslab/jsmpeg/issues/311#issuecomment-523935494
 Player.prototype.getDuration = function () {
 	return this.video.timestamps.length / this.video.frameRate;
+};
+
+Player.prototype.getPlaybackRate = function () {
+	return this.audio ? this.audio.playbackRate : this.video.playbackRate;
+};
+
+Player.prototype.setPlaybackRate = function (playbackRate) {
+	if (this.audio) {
+		this.audio.playbackRate = playbackRate;
+	}
+	if (this.video) {
+		this.video.playbackRate = playbackRate;
+	}
 };
 
 Player.prototype.getVolume = function() {
@@ -179,15 +196,19 @@ Player.prototype.seek = function(time) {
 	var startOffset = this.audio && this.audio.canPlay
 		? this.audio.startTime
 		: this.video.startTime;
+    var timeOffset = time + startOffset;
 
 	if (this.video) {
-		this.video.seek(time + startOffset);
+		this.video.seek(timeOffset);
 	}
 	if (this.audio) {
-		this.audio.seek(time + startOffset);
+		this.audio.seek(timeOffset);
 	}
 
-	this.startTime = JSMpeg.Now() - time;
+	var now = JSMpeg.Now();
+	this.startTime = now - time
+	this.lastFrameTime = now;
+	this.lastTargetTime = timeOffset;
 };
 
 Player.prototype.getCurrentTime = function() {
@@ -212,7 +233,13 @@ Player.prototype.update = function() {
 
 	if (!this.isPlaying) {
 		this.isPlaying = true;
-		this.startTime = JSMpeg.Now() - this.currentTime;
+		var now = JSMpeg.Now();
+		var startOffset = this.audio && this.audio.canPlay ? this.audio.startTime : this.video.startTime;
+		var currentTime = this.currentTime;
+		this.isPlaying = true;
+		this.startTime = now - currentTime;
+		this.lastFrameTime = now;
+		this.lastTargetTime = startOffset + currentTime;
 
 		if (this.options.onPlay) {
 			this.options.onPlay(this);
@@ -284,15 +311,21 @@ Player.prototype.updateForStaticFile = function() {
 
 	else if (this.video) {
 		// Video only - sync it to player's wallclock
-		var targetTime = (JSMpeg.Now() - this.startTime) + this.video.startTime,
+		var now = JSMpeg.Now();
+		var targetTime = (now - this.lastFrameTime) * this.playbackRate + this.lastTargetTime,
 			lateTime = targetTime - this.video.currentTime,
-			frameTime = 1/this.video.frameRate;
+			frameTime = 1 / this.video.frameRate;
+
+		this.lastFrameTime = now;
+		this.lastTargetTime = targetTime;
 
 		if (this.video && lateTime > 0) {
 			// If the video is too far behind (>2 frames), simply reset the
 			// target time to the next frame instead of trying to catch up.
 			if (lateTime > frameTime * 2) {
-				this.startTime += lateTime;
+				this.startTime += lateTime
+				this.lastFrameTime += lateTime;
+				this.lastTargetTime += lateTime;
 			}
 
 			notEnoughData = !this.video.decode();
