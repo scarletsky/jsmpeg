@@ -218,7 +218,40 @@ Player.prototype.getCurrentTime = function() {
 };
 
 Player.prototype.setCurrentTime = function(time) {
+	var self = this;
+	var renderer = this.renderer;
 	this.seek(time);
+
+	if (!renderer) return Promise.resolve();
+
+    // NOTE:
+	//   We need to skip some frames to resolve the noisy image, 30 frame is just a reasonable number in my case
+	//   When we set currentTime quickly(like draging the progress of video),
+	//   we need to call the `resolve` of the last promise.
+	if (self.onUnexpectedResolve) {
+		self.onUnexpectedResolve();
+	}
+
+	renderer.enabled = false;
+
+	return new Promise(function (resolve) {
+		var isBreak = false;
+		self.onUnexpectedResolve = function () {
+			delete self.onUnexpectedResolve;
+			isBreak = true;
+			resolve();
+		};
+
+		function onSuccessResolve () {
+			if (isBreak) return;
+
+			delete self.onUnexpectedResolve;
+			renderer.enabled = true;
+			resolve();
+		};
+
+		JSMpeg.WaitFrames(30).then(onSuccessResolve);
+	});
 };
 
 Player.prototype.update = function() {

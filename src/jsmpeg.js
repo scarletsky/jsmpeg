@@ -15,7 +15,7 @@ var JSMpeg = {
 	// the video and handles Audio unlocking on iOS. VideoElements can be
 	// created directly in HTML using the <div class="jsmpeg"/> tag.
 	VideoElement: null,
-	
+
 	// The BitBuffer wraps a Uint8Array and allows reading an arbitrary number
 	// of bits at a time. On writing, the BitBuffer either expands its
 	// internal buffer (for static files) or deletes old data (for streaming).
@@ -30,7 +30,7 @@ var JSMpeg = {
 	//   .established - boolean, true after connection is established
 	//   .completed - boolean, true if the source is completely loaded
 	//   .progress - float 0-1
-	Source: {}, 
+	Source: {},
 
 	// A Demuxer may sit between a Source and a Decoder. It separates the
 	// incoming raw data into Video, Audio and other Streams. API:
@@ -68,10 +68,10 @@ var JSMpeg = {
 	//   .stop()
 	//   .enqueuedTime - float, in seconds
 	//   .enabled - wether the output does anything upon receiving data
-	AudioOutput: {}, 
+	AudioOutput: {},
 
 	Now: function() {
-		return window.performance 
+		return window.performance
 			? window.performance.now() / 1000
 			: Date.now() / 1000;
 	},
@@ -104,7 +104,19 @@ var JSMpeg = {
 		return bytes.buffer;
 	},
 
-	// The build process may append `JSMpeg.WASM_BINARY_INLINED = base64data;` 
+    WaitFrames: function(n) {
+		var i = 0;
+        return new Promise(function (resolve) {
+            if (n <= 0) return resolve();
+            return requestAnimationFrame(function loop() {
+                i++;
+                if (i >= n) return resolve();
+                return requestAnimationFrame(loop);
+            });
+        });
+    },
+
+	// The build process may append `JSMpeg.WASM_BINARY_INLINED = base64data;`
 	// to the minified source.
 	// If this property is present, jsmpeg will use the inlined binary data
 	// instead of trying to load a jsmpeg.wasm file via Ajax.
@@ -118,5 +130,3 @@ if (document.readyState === 'complete') {
 else {
 	document.addEventListener('DOMContentLoaded', JSMpeg.CreateVideoElements);
 }
-
-
